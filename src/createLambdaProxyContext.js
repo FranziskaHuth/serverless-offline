@@ -15,7 +15,7 @@ module.exports = function createLambdaProxyContext(request, options, stageVariab
       principalId: authPrincipalId || process.env.PRINCIPAL_ID || 'offlineContext_authorizer_principalId', // See #24
     },
     path: request.route.path,
-    headers: request.headers,
+    headers: upperCase(request.headers),
     pathParameters: nullIfEmpty(request.params),
     requestContext: {
       accountId: 'offlineContext_accountId',
@@ -43,3 +43,12 @@ module.exports = function createLambdaProxyContext(request, options, stageVariab
     stageVariables: nullIfEmpty(stageVariables),
   };
 };
+function upperCase(inputHeaders){
+  // Capitalize request.headers as NodeJS use lowercase headers
+  // however API Gateway always pass capitalize headers
+  const headers = {};
+  for (let key in inputHeaders) { // eslint-disable-line prefer-const
+    headers[key.replace(/((?:^|-)[a-z])/g, x => x.toUpperCase())] = inputHeaders[key];
+  }
+  return headers;
+}
